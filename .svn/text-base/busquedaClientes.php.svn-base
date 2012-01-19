@@ -1,0 +1,60 @@
+<?php
+if (isset($_POST['q']))
+{
+	
+	$claveBusqueda = $_POST['q'];
+	}
+else
+{	
+	$claveBusqueda = '';
+	}
+
+
+$tofind = "ÀÁÂÃÄÅàáâãäåÒÓÔÕÖØòóôõöøÈÉÊËèéêëÇçÌÍÎÏìíîïÙÚÛÜùúûüÿÑñ";
+$replac = "abcdeeghijklaaoiqosuunwxyzabcdeeghijklmaoiqosuunwxyza";
+
+
+/////////////////////BASE CLIENTES /////////////////////////////////////////
+
+$clientes = array();
+
+$con = mssql_connect ("saplab.electrotecnica.local", "portal_logistic","4lm3r404$") or die("Could not select base");
+mssql_select_db ("SBO_Electrotecnica", $con) or die("Could not select examples");	
+
+$result = mssql_query("select top(10) cardName from OCRD where cardType = 'C' and cardName like '".$claveBusqueda."%'",$con);
+	
+while ($row = mssql_fetch_array($result)) 
+	{
+			$clientes[count($clientes)] = strtr($row[0],$tofind,$replac);
+	}
+	mssql_close($con);	
+	
+	
+	
+$con = mssql_connect ("saplab.electrotecnica.local", "portal_logistic","4lm3r404$") or die("Could not select base");
+
+mssql_select_db ("SBO_Soporte_Critico", $con) or die("Could not select examples");
+
+$result = mssql_query("select top(10) cardName from OCRD where cardType = 'C' and cardName like '".$claveBusqueda."%'",$con);
+  
+  while ($row = mssql_fetch_array($result)) 
+	{
+		if(!in_array($row[0], $clientes) )
+		{
+			$clientes[count($clientes)] = strtr($row[0],$tofind,$replac);
+		}
+	}
+	
+/////////////CIERA BASE CLIENTES /////////////////////////////////////////
+
+echo '<BR>';
+  				echo '<SELECT NAME="key_clientes" id="key_clientes" MULTIPLE SIZE=11>';
+  				foreach ($clientes as $cliente) 
+						{
+ 							echo "<option VALUE='$cliente'> $cliente </option>";
+						}
+				echo 'basura';
+				echo '</SELECT>';
+				
+					mssql_close($con);
+?>

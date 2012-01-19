@@ -1,0 +1,219 @@
+<?php
+session_start();
+include "resol.php";
+
+//variables globales
+
+$fechaInicial = $_POST['fecha_inicio']; 
+$fechaFinal = $_POST['fecha_final'];
+$medio_dia = $_POST['half_day'];
+$cometario = $_POST['texto_observaciones'];
+
+if($fechaInicial != '' && $fechaFinal != '')
+{
+	//variables del sistema
+	$dias_solicitados = calcular_dias($medio_dia,$fechaInicial,$fechaFinal);
+	$idempleado = $_SESSION['idEmpleado'];
+	$nombreEmpleado = $_SESSION['name'];
+	$correoEmpleado =$_SESSION['employmail'];
+	$saldo = $_SESSION['saldo'];
+	$correoJefe = $_SESSION['bossmail'];
+	$aceptadoJefe = 0;
+	
+	$sqlstring = "INSERT INTO Movimientos (idEmpleado,fechaInicial,fechaFinal,dias,correoJefe,comentario,aceptadoJefe) VALUES (";
+
+	$sqlstring = $sqlstring."'".$idempleado."','".$fechaInicial."','".$fechaFinal."','".$dias_solicitados."','".			$correoJefe."','".$cometario."',".$aceptadoJefe.")";
+	
+	
+		if (!mysql_query($sqlstring, $dbhandle))
+ 		 {
+  		  echo "Solicitud no enviada";
+         } 
+   else
+        {
+		 $ultimo_id = mysql_insert_id($dbhandle); 
+	    }
+
+
+	 // Setup your Subject and Message Body 
+  	$subject='Solicitud de vacaciones';
+  	$body='Fecha Inicio:  ' . $fechaInicial. '<BR> Fecha final ' .$fechaFinal.  '<BR> Saldo de dias : ' .$_SESSION['saldo'] . '<BR> Comentarios : <BR> ' . $cometario;
+  
+  // Especifica el contenido del correo  
+	$message = '';  
+	$message .= '<html>'; 
+	$message .= '<body style="font-family:Verdana, Verdana, Geneva, sans-serif; font-size:14px; color:#666666;">'; 
+	$message .= '<table width="800" height="159" border="0" cellpadding="0" cellspacing="0" >';
+	$message .= '<tr>';
+	$message .= '<td height="66" colspan="4" bgcolor="#CCCCCC">Solicitud de vacaciones</td>';
+	$message .= '</tr>';
+	$message .= '<tr>';
+	$message .= '<td width="1%"></td>';
+	$message .= '<td colspan="3">&nbsp;</td>';
+	$message .= '</tr>';
+	$message .= '<tr>';
+	$message .= '<td>&nbsp;</td>';
+	$message .= '<td><b>Nombre</b></td>';
+	$message .= '<td>:</td>';
+	$message .= '<td>'.$nombreEmpleado.'</td>';
+	$message .= '</tr>';
+	$message .= '</tr>';
+	$message .= '<tr>';
+	$message .= '<td>&nbsp;</td>';
+	$message .= '<td><b>E-mail</b></td>';
+	$message .= '<td>:</td>';
+	$message .= '<td>'.$correoEmpleado.'</td>';
+	$message .= '</tr>';
+	$message .= '<tr>';
+	$message .= '<td>&nbsp;</td>';
+	$message .= '<td><b>Fecha de Inicio</b></td>';
+	$message .= '<td>:</td>';
+	$message .= '<td>'.$fechaInicial.'</td>';
+	$message .= '</tr>';
+	$message .= '<tr>';
+	$message .= '<td>&nbsp;</td>';
+	$message .= '<td><b>Fecha de finalizacion</b></td>';
+	$message .= '<td>:</td>';
+	$message .= '<td>'.$fechaFinal.'</td>';
+	$message .= '</tr>';
+	$message .= '<tr>';
+	$message .= '<td>&nbsp;</td>';
+	$message .= '<td><b>Saldo</b></td>';
+	$message .= '<td>:</td>';
+	$message .= '<td>'.$saldo.'</td>';
+	$message .= '</tr>';
+	$message .= '<tr>';
+	$message .= '<td>&nbsp;</td>';
+	$message .= '<td><b>Cantidad dias solicitados</b></td>';
+	$message .= '<td>:</td>';
+	$message .= '<td>'.$dias_solicitados.'</td>';
+	$message .= '</tr>';
+	$message .= '<tr>';
+	$message .= '<td>&nbsp;</td>';
+	$message .= '<td><b>Comments</b></td>';
+	$message .= '<td>:</td>';
+	$message .= '<td>'.$cometario.'</td>';
+	$message .= '</tr>';
+	$message .= '<tr>';
+	$message .= '<td height="21" colspan="4" bgcolor="#CCCCCC"></td>';
+	$message .= '</tr>';
+
+
+	$message .= '</table>';	
+
+	$message .= '<tr>';
+	$message .= '<td></td>';
+	$message .= '<table>';
+	
+	
+	 
+	
+	function generar_dir($valor,$identificador)
+	{
+		$respuesta = '<a href="';
+		$respuesta .= 'http:nike.electrotecnica.local/vacaciones/procesar_respuesta.php';
+		$respuesta .=  trim('?for=');
+		$respuesta .= trim($identificador);
+		$respuesta .= trim('&amp;');
+		$respuesta .= 'var=';
+		$respuesta .= $valor;
+		$respuesta .= '">';
+		if($valor == 0)
+		{
+			$respuesta .= 'Aprobado';
+			}
+		else
+		{
+			$respuesta .= 'Rechazado';
+			}
+		$respuesta .= '</a></td>';
+		
+		return $respuesta;
+		}
+	
+	$message .='<tr>';
+	$message .='<td bgcolor="#66CC66">';
+	$message .= generar_dir(0,$ultimo_id);
+	echo generar_dir(0,$ultimo_id);
+	$message .='<td></td>';
+	$message .='<td bgcolor="#DF0101">';
+	$message .= generar_dir(1,$ultimo_id);
+	echo generar_dir(1,$ultimo_id);
+	$message .= '</tr>';
+	$message .= '</table>';
+
+	$message .= '</body>\n'; 
+	$message .= '</html>\n'; 
+ 
+	$body = $message;
+  
+  
+    // Additional Headers 
+  	$headers = 'From: no-reply@grupoelectrotecnica.com' . "\r\n" .
+   'Return-Path: no-reply@grupoelectrotecnica.com' . "\r\n" .
+   'X-Mailer: PHP/' . phpversion(). "\r\n";
+    $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+   
+ 
+   
+   
+	$mai =$_SESSION['bossmail'];
+	$nam =$_SESSION['bossname'];
+
+
+  	if(mail ($nam.'<'.$mai.'>', $subject, $body,$headers)){
+      echo "Solicitud completada";
+  }
+  else{
+      echo "<font color='red'><h2>Solicitud no se pudo realizar por el momento</h2></font>";
+  }
+	
+	}
+else
+{
+	echo 'Favor completar los campos';
+	}
+//preguntar si los valores vienen vacios.??
+mysql_close($dbhandle);
+
+
+function calcular_dias($half_day,$date_i,$date_f)
+{
+	$cantidad = 0;
+	if($half_day == 'true')
+		{
+			$cantidad = $cantidad - 0.5; 
+		}
+		
+	$sql="SELECT dia FROM Feriados";
+			
+	$result = mysql_query($sql);
+	$k=0;
+	$diasferiados = array();
+			
+			
+	while($row = mysql_fetch_array($result))
+		{
+		  $diasferiados[$k] = $row[0];
+		  $k++;			  
+		}
+	////////////
+	$check_date = $date_i;
+	$end_date = $date_f;	
+			
+	while ($check_date <= $end_date)
+		 { 
+			if((date('w',strtotime($check_date)) == 0 )||  (in_array($check_date,$diasferiados))  || (date('w',strtotime($check_date)) == 6 ))
+				{}
+			else {
+					$cantidad = ++$cantidad;
+				 }	 
+			$check_date = date ("Y-m-d", strtotime ("+1 day", strtotime($check_date))); 
+		}
+	return $cantidad;
+	}
+
+
+
+?>
+

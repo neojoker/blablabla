@@ -1,0 +1,49 @@
+<?php	
+
+$estado = 0;
+$user = $_POST['user'];
+$pass = $_POST['pass'];
+
+	if($user == '' || $pass == '')
+		{
+			$estado = 1;
+		}
+		else
+		{
+			session_start();
+			//echo "Inicia autenticacion";
+			$adServer = "pegasus.electrotecnica.local"; #replace with your AD server ip/hostname
+			$ldapconn = ldap_connect($adServer)
+			or $this->msg = "Could not connect to LDAP server.";
+	
+			$ldaprdn = "electrotecnica\\".$_POST['user'] ;
+			//echo $ldaprdn;
+			$ldappass = $_POST['pass'];
+			
+	
+			try
+			{
+				$ldapbind = ldap_bind($ldapconn, $ldaprdn,$ldappass);
+				if ($ldapbind) {
+				
+				$_SESSION['userblanco'] = $user;
+				$_SESSION['user'] = $ldaprdn;
+				$_SESSION['pass'] = $ldappass;
+				//header('Location: formulario.php');
+				$estado = 3;
+		 
+				} else {
+					
+					
+				
+					
+				$estado = 2;
+				}
+			} catch (Exception $e) {
+   				 echo 'Caught exception: ',  $e->getMessage(), "\n";
+			}
+		}
+		
+		echo $estado;
+
+?>

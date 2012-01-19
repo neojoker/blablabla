@@ -1,0 +1,71 @@
+$(function(){
+	$.datepicker.setDefaults( $.datepicker.regional["es"] );
+	$( "#fecha_inicio" ).datepicker({
+			dateFormat: 'yy-mm-dd',
+			showOn: "button",
+			defaultDate: null,
+			buttonImage: "img/iconCalendar.gif",
+			buttonImageOnly: true
+		});
+		
+	$( "#medio_dia" ).button();
+	$( "#fecha_final" ).datepicker({
+			dateFormat: 'yy-mm-dd',
+			showOn: "button",
+			defaultDate: null,
+			buttonImage: "img/iconCalendar.gif",
+			buttonImageOnly: true
+		});
+	$( "#fecha_ingreso" ).datepicker({
+			showOn: "button",
+			buttonImage: "img/iconCalendar.gif",
+			buttonImageOnly: true
+		});
+		
+		
+	$("#fecha_inicio").change(function(event){
+		var date_b = $("#fecha_inicio").val(); 
+		var date_e = $("#fecha_final").val();
+		var half_d = $('#medio_dia').is(':checked');
+		$.post("calculo_dias.php", { date_inicio: "" + date_b , date_final: "" + date_e, half_day : "" + half_d},
+  					function(data){
+					$('#dias_solicitados').val(data);	
+		});
+	});
+	
+	$("#fecha_final").change(function(event){
+		var date_b = $("#fecha_inicio").val(); 
+		var date_e = $("#fecha_final").val();
+		var half_d = $('#medio_dia').is(':checked');
+		$.post("calculo_dias.php", { date_inicio: "" + date_b , date_final: "" + date_e, half_day : "" + half_d },
+  					function(data){
+					$('#dias_solicitados').val(data);	
+				});
+		});
+	
+	$("#medio_dia").bind('change',function(event){
+		var date_b = $("#fecha_inicio").val(); 
+		var date_e = $("#fecha_final").val();
+		var half_d = $('#medio_dia').is(':checked');
+		$.post("calculo_dias.php", { date_inicio: "" + date_b , date_final: "" + date_e, half_day : "" + half_d },
+  					function(data){
+					$('#dias_solicitados').val(data);	
+				});
+		
+		});
+		
+	$('#aplicar').click(function(e){
+		var date_b = $("#fecha_inicio").val(); 
+		var date_e = $("#fecha_final").val();
+		var half_d = $('#medio_dia').is(':checked');
+		var observation_comment = $("#textObservaciones").val();
+		$.post("generar_solicitud.php", { fecha_inicio: "" + date_b , fecha_final: "" + date_e, half_day : "" + half_d, texto_observaciones : "" + observation_comment },
+  					function(data){
+						alert(data);
+							//var direccion = 'portal.php';
+							//$(window.location).attr('href', direccion);	
+						
+				});
+		e.preventDefault();
+		});
+});

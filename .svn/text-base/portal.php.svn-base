@@ -1,0 +1,25 @@
+<?php 
+session_start();
+$user = $_SESSION['userblanco'];
+include('encabezado.php');
+write_header('Grupo Electrotecnica');
+write_body('Grupo Electrotecnica', $user);
+write_notificacion();
+
+include('groups.php');
+?>
+		<div id="main" role="main">
+			<div class="rows">
+<div class="row even"><h2>General</h2>
+					<a href="blog_request.php"><img src="img/icons/blog-de-ideas.png" alt="Blog" width="70" height="70"/><span>Crear solicitud</span></a>
+                	<a href="requests.php"><img src="img/icons/blog-de-ideas.png" alt="Blog" width="70" height="70"/><span>Solicitudes pendientes</span></a>
+                    
+                    <a href="request_vacation.php"><img src="img/icons/vacaciones.png" alt="Blog" width="70" height="70"/><span>Solicitud de vacaciones</span></a>
+                    
+                     <a href="management_vacation.php"><img src="img/icons/vacaciones.png" alt="Blog" width="70" height="70"/><span>Gestion de vacaciones</span></a>
+					
+         </div>
+<?php
+include ('footer.php');
+write_footer('portal');
+?>

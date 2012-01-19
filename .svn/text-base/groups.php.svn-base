@@ -1,0 +1,126 @@
+<?php	
+
+
+
+function generar_arreglo_permisos()
+{
+	$respuesta = array();
+	
+	
+
+	//PREGUNTAS PARA EL CONJUNTO DE ING
+	$respuesta['ing'] = array();
+	
+	
+	
+	
+	//////////////////////////////////////
+	//PREGUNTAS PARA EL GRUPO DE LOGISTICA
+	$respuesta['logistica'] = array();
+
+
+
+
+
+	//////////////////////////////////////
+	//PREGUNTAS PARA EL GRUPO DE VENTAS 
+	$respuesta['ventas'] = array();
+	
+	
+	
+	
+	//////////////////////////////////////
+	//PREGUNTAS PARA EL GRUPO DE PROYECTOS
+	$respuesta['proyectos'] = array();
+	
+	
+	
+	
+	
+	//////////////////////////////////////
+	//PREGUNTAS PARA EL GRUPO DE GESTION HUMANA Y GENERAR CASI PARA TODOS 
+	$respuesta['gestion'] = array();
+	
+	
+	
+	
+	
+	
+	//////////////////////////////////////
+	//PREGUNTAS PARA EL GRUPO DE TI
+	$respuesta['ti'] = array();
+	
+	
+	
+	
+	//////////////////////////////////////
+	
+	}
+
+
+
+function generar_lista_grupos()
+{
+	$user = $_SESSION['userblanco'];
+	$ldappass = $_SESSION['pass'];
+	
+	
+	$ldaprdn = "electrotecnica\\".$user;	
+	$adServer = "pegasus.electrotecnica.local"; #replace with your AD server ip/hostname
+	
+	
+	 $ldapconn = ldap_connect($adServer) 
+			  or die("Couldn't connect to AD!"); 
+		
+	
+		// Bind to the directory server. 
+		$ldapbind = ldap_bind($ldapconn, $ldaprdn,$ldappass) or 
+			  die("Couldn't bind to AD!"); 
+	
+	$dn ='OU=Electrotecnica,dc=electrotecnica,dc=local';
+	
+	
+	//$filter = 'samaccountname='.$ldaprdn; 
+	  
+	$filter = '(samaccountname='.$user.')';
+	
+	
+		$result = ldap_search($ldapconn, $dn, $filter); 
+		$entries = ldap_get_entries($ldapconn, $result); 
+		
+	
+		for ($i=0; $i<$entries["count"]; $i++) 
+		   {
+			   
+			  try {
+				  
+				  $groups = array();
+					// Loop through the groups that the user is a `memberof`
+					foreach($entries[0]['memberof'] as $group) {
+					  // extract Group name from string
+					  $temp = substr($group, 0, stripos($group, ","));
+					  // Strip the CN= and change to lowercase for easy handling
+					  $temp = strtolower(str_replace("CN=", "", $temp));
+					
+					  echo "{$temp}<br />";   // Print out Group's name
+					  $groups[] .= $temp;
+					}
+				
+		
+					
+					} catch (Exception $e) {
+						echo 'error';
+						
+					}	
+		   }
+	   // Close the connection 
+		ldap_unbind($ldapconn);
+		
+		return $groups;
+
+	}
+
+
+
+
+?>

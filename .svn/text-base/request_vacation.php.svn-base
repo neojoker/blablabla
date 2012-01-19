@@ -1,0 +1,185 @@
+<?php
+session_start();
+$user = $_SESSION['userblanco'];
+include "encabezado.php";
+
+write_header('Servicio de vacaciones');
+write_body('Servicio de vacaciones',$user);
+write_notificacion();
+$username = "root";
+$password = "critical";
+$hostname = "localhost"; 
+
+$usuariold = $_SESSION['user'];
+$usuario = $_SESSION['userblanco'];
+$pass = $_SESSION['pass'];
+
+ $ad = ldap_connect("pegasus.electrotecnica.local") 
+          or die("Couldn't connect to AD!"); 
+    
+    ldap_set_option($ad, LDAP_OPT_PROTOCOL_VERSION, 3); 
+    ldap_set_option($ad, LDAP_OPT_REFERRALS, 0); 
+
+    // Bind to the directory server. 
+    $bd = ldap_bind($ad,$usuariold,$pass) or 
+          die("Couldn't bind to AD!"); 
+
+
+$dn = "DC=electrotecnica,DC=local"; 
+
+//  $filter = '(cn='.$usuario.')'; 
+	$filter = '(samaccountname='.$usuario.')';
+
+
+    $result = ldap_search($ad, $dn, $filter); 
+    $entries = ldap_get_entries($ad, $result); 
+	
+
+    for ($i=0; $i<$entries["count"]; $i++) 
+       {
+		   
+		  try {
+			  
+			  	$Nombre = $entries[$i]['name'][0];
+				$acount = $entries[$i]['samaccountname'][0];
+				$manager = $entries[$i]['manager'][0];
+				$departmen =  $entries[$i]['department'][0];
+				$employmail =  $entries[$i]['mail'][0];
+				
+				$manager = explode(',',$manager);
+				
+				//Buscando informacion del jefe
+				
+				$manager = $manager[0];
+				$filter = $manager; 
+			
+				$result = ldap_search($ad, $dn, $filter); 
+				$entries = ldap_get_entries($ad, $result); 
+				
+				$bossname =  $entries[$i]['displayname'][0];
+				$bossacount = $entries[$i]['samaccountname'][0];
+				$bossmail = $entries[$i]['mail'][0];
+				
+				
+				
+				
+				$_SESSION['name'] = $Nombre;
+				$_SESSION['acount'] = $acount ;
+				$_SESSION['manager'] = $manager;
+				$_SESSION['departmen'] = $departmen ;
+				$_SESSION['employmail'] = $employmail;
+				$_SESSION['bossname'] = $bossname;
+				$_SESSION['bossacount'] = $bossacount;
+				$_SESSION['bossmail'] = $bossmail;
+				
+						  	
+				} catch (Exception $e) {
+					echo 'error';
+					
+				}	
+       } 
+                 
+    // Close the connection 
+    ldap_unbind($ad);
+
+
+
+//connection to the database
+$dbhandle = mysql_connect($hostname, $username, $password) 
+  or die("Unable to connect to MySQL+++".mysql_error());
+  
+  
+  
+$selected = mysql_select_db("registroVacaciones",$dbhandle) 
+  or die("Could not select examples");
+
+		   
+			$sql="SELECT Saldo,idEmpleado
+			FROM Empleados
+			WHERE user = '".$acount."'";					
+			$result = mysql_query($sql);
+			$row = mysql_fetch_array($result);
+			$_SESSION['saldo'] = $row[0];
+			$_SESSION['idEmpleado'] = $row[1];
+?>
+
+<div id="main" role="main">
+			
+			<form class="dashboard">
+					
+			<fieldset>
+            
+            <legend> Solicitud de vacaciones </legend>
+            
+            <ol>
+            
+            	<li>
+                    <label for="saldo">Saldo de dias: </label>
+                    <input type="text" id="saldo" name="saldo" readonly="readonly"  disabled="disabled" value="<?php  echo $row[0]?> ">
+                    <br/>
+                </li>
+                
+                <li>
+                
+                    <label for="depa"> Departamento: </label>
+                    <input name="Depart" type="text" id='depa' readonly="readonly" disabled="disabled" value="<?php echo $departmen ?>"/> 
+                	<br/>
+                </li>
+                
+                
+                <li>
+                	<label for="jefe">Nombre de Jefe: </label>
+                    <input name="IdJefe" type="text" id="jefe" value="<?php  
+				$manager = explode('=',$manager);
+				echo $manager[1]; ?>" size="70" readonly="readonly" disabled="disabled"/>
+                	<br/>
+                </li>
+                
+                <li>
+                	<label for="fecha_inicio">Fecha de Inicio:</label>
+                	<input type="text" id="fecha_inicio" name="fecha_inicio" size="20" disabled="disabled"/>
+                    <br/>
+                </li>
+                
+                <li>
+                	<label for="fecha_final">Fecha de conclusión:</label>
+                    <input type="text" id="fecha_final" name ='fecha_final' size="20" disabled="disabled"/>
+                	<br/>
+                </li>
+                
+                <li>
+                
+                <input type="checkbox" id="medio_dia" name='medio_dia' value="true" />
+                <label for="medio_dia">medio dia</label>
+                	<br/>
+                </li>
+                
+                
+                <li>
+                	<label for="dias_solicitados">Dias solicitados: </label>
+                    <input type="text" id='dias_solicitados' size="2" disabled="disabled"/>
+                	<br/>
+                </li>
+                
+                <li>
+                	<label for="textObservaciones">Observaciones</label>
+                	<textarea name="textObservaciones" id="textObservaciones" cols="45" rows="5"></textarea>
+                    <br/>
+               	</li>
+                
+                
+                
+                 <button id="aplicar">aplicar</button>
+				  <button id= "cancelar">cancelar</button>
+                
+             </ol>
+          </fieldset>
+          
+         </form>
+         
+         
+<?php
+include "footer.php";
+ write_footer('request_vacaciones');
+
+?>
